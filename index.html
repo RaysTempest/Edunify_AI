@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dapur Nusantara Modern - Ribuan Inspirasi Resep</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.3.2/lazysizes.min.js" integrity="sha512-q583ppKrCRc7N5O0n2nzUiJ+suUv7Et1JGels4bXOaMFQcamPk9HjdUknZuuFjBNs7tsMuadge5k9RzdmO+1GQ==" crossorigin="anonymous" referrerpolicy="no-referrer" async></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        /* General Styling */
+        body { font-family: 'Poppins', sans-serif; background-color: #FEFCF3; color: #4A4A4A; }
+        .font-display { font-family: 'Playfair Display', serif; }
+        
+        /* Smooth Scroll & Scrollbar */
+        html { scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #FEFCF3; }
+        ::-webkit-scrollbar-thumb { background: #E0C097; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #C7A67C; }
+
+        /* Page Transitions & Loader */
+        .page { transition: opacity 0.5s ease-out; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #A0522D; border-radius: 50%; width: 50px; height: 50px; animation: spin 1.2s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Category Cards on Main Page */
+        .category-card { transition: transform 0.4s ease, box-shadow 0.4s ease; }
+        .category-card:hover { transform: scale(1.04); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3); }
+
+        /* Recipe Cards */
+        .recipe-card {
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            border: 1px solid transparent;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .recipe-card:hover { transform: translateY(-10px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border-color: #A0522D; }
+        .recipe-card.filtered-out { animation: fadeOut 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.9); height: 0; padding: 0; margin: 0; border: 0; } }
+
+        /* [PERBAIKAN] Efek untuk Lazy Loading Gambar */
+        img.lazyload { filter: blur(10px); opacity: 0.7; }
+        img.lazyloaded { filter: blur(0); opacity: 1; transition: filter 0.5s, opacity 0.5s; }
+
+        /* Modal Animation */
+        #recipe-modal { transition: opacity 0.3s ease; }
+        #modal-content { transition: transform 0.3s ease, opacity 0.3s ease; transform: scale(0.95); opacity: 0; }
+        #recipe-modal.flex #modal-content { transform: scale(1); opacity: 1; }
+
+        /* Filter Tag Buttons Styling */
+        .filter-tag-btn { transition: all 0.2s ease; }
+        .filter-tag-btn.active { background-color: #8B4513; color: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transform: scale(1.05); }
+        .filter-tag-btn:hover:not(.active) { background-color: #F5DEB3; }
+
+        /* Scroll-to-top Button */
+        #scroll-to-top { transition: opacity 0.3s, transform 0.3s; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="loader-container" class="fixed inset-0 bg-white z-[100] flex justify-center items-center hidden">
+        <div class="loader"></div>
+    </div>
+
+    <div id="app-container" class="container mx-auto px-4 py-8">
+
+        <div id="main-page" class="page">
+            <header class="text-center mb-12">
+                <h1 class="font-display font-black text-6xl md:text-8xl text-stone-800">Dapur Nusantara</h1>
+                <p class="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">Dari resep warisan hingga kreasi modern, temukan inspirasi memasak yang tak terbatas di sini.</p>
+            </header>
+            <main>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-10">
+                    <div id="cat-makanan" class="category-card cursor-pointer rounded-2xl h-96 flex items-end p-8 text-white shadow-xl" style="background-image: linear-gradient(to top, rgba(0,0,0,0.8), transparent 50%), url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1200&auto=format&fit=crop');">
+                        <div><h2 class="font-display text-5xl font-bold">Makanan</h2><p class="mt-2 text-xl">Hidangan Lezat Pembangkit Selera</p></div>
+                    </div>
+                    <div id="cat-minuman" class="category-card cursor-pointer rounded-2xl h-96 flex items-end p-8 text-white shadow-xl" style="background-image: linear-gradient(to top, rgba(0,0,0,0.8), transparent 50%), url('https://images.unsplash.com/photo-1572490122747-91a035a6e355?q=80&w=1200&auto=format&fit=crop');">
+                        <div><h2 class="font-display text-5xl font-bold">Minuman</h2><p class="mt-2 text-xl">Kesegaran Pelepas Dahaga</p></div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button id="random-recipe-btn" class="bg-amber-800 text-white font-bold py-3 px-8 rounded-full hover:bg-amber-900 transition-transform transform hover:scale-105 shadow-lg">
+                        Kejutkan Saya!
+                    </button>
+                </div>
+            </main>
+        </div>
+
+        <div id="recipe-list-page" class="page hidden">
+            <header class="mb-8">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div class="flex items-center">
+                        <button id="back-button" class="p-2 rounded-full hover:bg-amber-100 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-amber-800" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8a5 5 0 000-10H6" /></svg></button>
+                        <h1 id="recipe-list-title" class="font-display text-4xl md:text-5xl font-bold text-amber-800 ml-4"></h1>
+                    </div>
+                    <div class="relative w-full sm:w-auto"><input type="text" id="search-bar" placeholder="Cari resep, bahan..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-full w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-amber-500"><svg class="w-5 h-5 text-gray-400 absolute top-1/2 left-3 transform -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></div>
+                </div>
+                <div id="filter-container" class="mt-6">
+                    <h3 class="font-bold text-lg text-gray-700 mb-3">Filter Berdasarkan Tag:</h3>
+                    <div id="filter-tags-container" class="flex flex-wrap items-center gap-2"></div>
+                    <div id="filter-info" class="flex justify-between items-center mt-4 text-sm text-gray-600">
+                        <p id="recipe-count"></p>
+                        <button id="reset-filters-btn" class="hidden font-semibold text-amber-800 hover:underline">Reset Filter</button>
+                    </div>
+                </div>
+            </header>
+            <main id="recipe-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 transition-opacity duration-300"></main>
+            <div id="no-results" class="hidden text-center py-16">
+                 <svg class="mx-auto h-24 w-24 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
+                <h3 class="mt-2 text-2xl font-display text-gray-600">Resep Tidak Ditemukan</h3>
+                <p class="mt-1 text-gray-500">Maaf, kami tidak dapat menemukan resep yang cocok. Coba kata kunci atau filter lain.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="recipe-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden justify-center items-center p-4 z-50">
+        <div id="modal-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col md:flex-row overflow-hidden">
+            <img id="modal-image" src="" alt="Foto Resep" class="w-full md:w-5/12 h-64 md:h-auto object-cover">
+            <div class="p-6 md:p-8 flex-1 overflow-y-auto">
+                <div class="flex justify-between items-start">
+                    <h2 id="modal-title" class="font-display text-3xl font-bold text-amber-800 mb-2 pr-4"></h2>
+                    <button id="close-modal" class="p-2 -mt-2 -mr-2 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-800 transition-colors flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                </div>
+                <div class="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm text-gray-600 mb-4">
+                    <span class="flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><strong id="modal-time"></strong></span>
+                    <span class="flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg><strong id="modal-difficulty"></strong></span>
+                </div>
+                 <p id="modal-description" class="text-gray-600 mb-6 italic"></p>
+                <h3 class="font-bold text-xl text-amber-700 border-b-2 border-amber-200 pb-2 mb-3">Bahan-Bahan</h3>
+                <ul id="modal-ingredients" class="list-disc list-inside space-y-2 text-gray-700 mb-6 pl-2"></ul>
+                <h3 class="font-bold text-xl text-amber-700 border-b-2 border-amber-200 pb-2 mb-3">Cara Membuat</h3>
+                <ol id="modal-instructions" class="space-y-4 text-gray-700 leading-relaxed pl-2"></ol>
+            </div>
+        </div>
+    </div>
+
+    <button id="scroll-to-top" class="fixed bottom-5 right-5 bg-amber-800 text-white p-3 rounded-full shadow-lg opacity-0 transform translate-y-4 hover:bg-amber-900 focus:outline-none z-40">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
+    </button>
+
+<script>
+// ===================================================================================
+// --- DATABASE RESEP ---
+// [PERBAIKAN] Menggunakan link source.unsplash.com untuk gambar tambahan agar lebih stabil
+// ===================================================================================
+const recipes = {
+    makanan: [
+        { nama: "Rendang Daging Sapi", gambar: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?q=80&w=800", waktu: "3 Jam", kesulitan: "Sulit", deskripsi: "Masakan daging bercita rasa pedas yang menggunakan campuran dari berbagai bumbu dan rempah-rempah. Salah satu hidangan terlezat di dunia.", tags: ["Daging", "Pedas", "Acara Spesial"], bahan: ["1 kg daging sapi, potong", "1.5 liter santan kental", "3 batang serai, memarkan", "4 lembar daun jeruk", "2 lembar daun kunyit", "2 cm lengkuas, memarkan", "Bumbu halus (cabai, bawang, jahe, dll)"], instruksi: ["Tumis bumbu halus hingga harum, masukkan serai, daun jeruk, daun kunyit, dan lengkuas.", "Masukkan daging, aduk hingga berubah warna.", "Tuang santan, masak dengan api kecil sambil terus diaduk perlahan hingga santan mengering dan mengeluarkan minyak."] },
+        { nama: "Sate Ayam Madura", gambar: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?q=80&w=800", waktu: "60 Menit", kesulitan: "Sedang", deskripsi: "Sate ayam dengan bumbu kacang khas Madura yang gurih dan sedikit manis, disajikan dengan lontong dan bawang merah iris.", tags: ["Ayam", "Kacang", "Street Food"], bahan: ["500 gr fillet ayam, potong dadu", "200 gr kacang tanah, goreng", "5 sdm kecap manis", "3 siung bawang putih", "Lontong atau nasi"], instruksi: ["Haluskan kacang tanah, bawang putih, dan bumbu lainnya untuk saus.", "Lumuri ayam dengan sebagian bumbu kacang dan kecap, diamkan 30 menit.", "Tusuk ayam ke tusukan sate, bakar hingga matang sambil diolesi sisa bumbu. Sajikan dengan saus kacang."] },
+        { nama: "Nasi Goreng Seafood", gambar: "https://images.unsplash.com/photo-1599557223403-8d6f41a0526e?q=80&w=800", waktu: "25 Menit", kesulitan: "Mudah", deskripsi: "Nasi goreng klasik dengan tambahan udang dan cumi segar, menciptakan rasa gurih laut yang menggugah selera.", tags: ["Nasi", "Seafood", "Cepat & Mudah"], bahan: ["2 piring nasi putih dingin", "150 gr udang, kupas", "100 gr cumi, potong cincin", "2 butir telur, orak-arik", "3 sdm kecap manis", "Bumbu halus (bawang merah, bawang putih, cabai)"], instruksi: ["Tumis bumbu halus hingga wangi, masukkan udang dan cumi, masak hingga berubah warna.", "Masukkan nasi dan telur orak-arik. Aduk rata.", "Tambahkan kecap manis, garam, dan merica. Aduk cepat di atas api besar hingga semua tercampur rata. Sajikan hangat."] },
+        { nama: "Gado-Gado Siram", gambar: "https://images.unsplash.com/photo-1623855101235-5a7a7c50a58a?q=80&w=800", waktu: "45 Menit", kesulitan: "Sedang", deskripsi: "Salad sayuran khas Indonesia yang terdiri dari sayuran rebus, tahu, tempe, dan telur, disiram dengan saus kacang yang lezat.", tags: ["Sayuran", "Kacang", "Vegetarian"], bahan: ["200 gr kangkung", "100 gr tauge", "1 buah tahu, goreng", "1 papan tempe, goreng", "2 butir telur, rebus", "Kerupuk", "Saus kacang instan atau buat sendiri"], instruksi: ["Rebus semua sayuran secara terpisah hingga matang, tiriskan.", "Potong-potong sayuran, tahu, tempe, dan telur, lalu tata di atas piring.", "Siram dengan saus kacang yang sudah diencerkan dengan air hangat. Sajikan dengan kerupuk."] },
+        { nama: "Ayam Goreng Kremes", gambar: "https://images.unsplash.com/photo-1603055416874-5547b95a8289?q=80&w=800", waktu: "50 Menit", kesulitan: "Sedang", deskripsi: "Ayam goreng empuk dengan balutan kremesan renyah yang terbuat dari adonan tepung beras, gurihnya meresap sampai ke tulang.", tags: ["Ayam", "Gorengan", "Lauk Pauk"], bahan: ["1 ekor ayam, potong 8", "500 ml air kelapa", "Bumbu ungkep (kunyit, bawang, ketumbar)", "125 gr tepung tapioka", "2 sdm tepung beras"], instruksi: ["Ungkep ayam dengan bumbu dan air kelapa hingga matang dan empuk.", "Campur sisa air ungkepan dengan tepung tapioka dan tepung beras untuk adonan kremes.", "Goreng ayam hingga kecoklatan. Tuang adonan kremes di atasnya, goreng hingga renyah. Angkat dan sajikan."] },
+        { nama: "Soto Ayam Lamongan", gambar: "https://images.unsplash.com/photo-1588013273468-437e45764213?q=80&w=800", waktu: "90 Menit", kesulitan: "Sedang", deskripsi: "Soto ayam dengan kuah kuning bening yang khas, dilengkapi dengan bubuk koya gurih yang membuatnya tak terlupakan.", tags: ["Ayam", "Berkuah", "Tradisional"], bahan: ["1/2 ekor ayam kampung", "2 liter air", "Bumbu halus (bawang, kemiri, kunyit)", "Soun, tauge, seledri", "Bubuk koya (kerupuk udang & bawang putih goreng)"], instruksi: ["Rebus ayam hingga empuk. Angkat dan suwir-suwir dagingnya.", "Tumis bumbu halus, masukkan ke dalam kaldu ayam, masak hingga mendidih.", "Sajikan soto dengan soun, tauge, suwiran ayam, seledri, dan taburan bubuk koya."] },
+        { nama: "Gudeg Jogja", gambar: "https://images.unsplash.com/photo-1623855033486-c2c5f913d6a3?q=80&w=800", waktu: "4 Jam", kesulitan: "Sulit", deskripsi: "Masakan khas Yogyakarta yang terbuat dari nangka muda yang dimasak dengan santan dalam waktu lama. Rasanya manis dan legit.", tags: ["Sayuran", "Tradisional", "Manis"], bahan: ["1 kg nangka muda, potong-potong", "1 liter santan kental", "200 gr gula merah", "Daun jati (untuk warna)", "Bumbu gudeg lengkap"], instruksi: ["Rebus nangka muda dengan bumbu dan daun jati hingga empuk.", "Masukkan santan dan gula merah, masak dengan api kecil (di-areh) selama beberapa jam hingga bumbu meresap dan kuah mengering.", "Sajikan gudeg dengan nasi hangat, krecek, dan telur pindang."] },
+        { nama: "Ikan Bakar Jimbaran", gambar: "https://images.unsplash.com/photo-1559810346-1393a5a485c7?q=80&w=800", waktu: "45 Menit", kesulitan: "Sedang", deskripsi: "Ikan laut segar yang dibakar dengan bumbu khas Bali, menghasilkan aroma asap dan rasa pedas-manis yang menggoda.", tags: ["Seafood", "Panggang", "Pedas"], bahan: ["1 ekor ikan kakap/bawal (sekitar 800gr)", "Bumbu oles (kecap manis, saus tomat, minyak)", "Bumbu halus (bawang merah, bawang putih, cabai, terasi)"], instruksi: ["Lumuri ikan dengan air jeruk nipis dan garam. Diamkan 15 menit.", "Tumis bumbu halus hingga matang, campurkan dengan bumbu oles.", "Bakar ikan sambil terus diolesi bumbu hingga matang sempurna di kedua sisi. Sajikan dengan sambal matah."] },
+        { nama: "Bakso Malang Komplit", gambar: "https://images.unsplash.com/photo-1595854341625-f33ee13dbf5e?q=80&w=800", waktu: "75 Menit", kesulitan: "Sedang", deskripsi: "Semangkuk kebahagiaan berisi bakso sapi, tahu bakso, siomay, dan pangsit goreng, disiram dengan kuah kaldu yang bening dan segar.", tags: ["Daging", "Berkuah", "Street Food"], bahan: ["250 gr daging sapi giling", "Tepung tapioka", "Tahu putih, kulit pangsit", "Tulang sapi untuk kaldu", "Bawang goreng dan seledri"], instruksi: ["Buat adonan bakso dari daging giling dan tapioka, bentuk bulat-bulat dan rebus hingga mengapung.", "Isi tahu dan kulit pangsit dengan adonan bakso, sebagian dikukus (siomay) dan sebagian digoreng.", "Rebus tulang sapi untuk membuat kaldu. Sajikan bakso dan pelengkapnya dengan siraman kuah panas."] },
+        { nama: "Pempek Kapal Selam", gambar: "https://images.unsplash.com/photo-1624835298122-c35b6b1a9e70?q=80&w=800", waktu: "60 Menit", kesulitan: "Sedang", deskripsi: "Hidangan khas Palembang dari adonan ikan dan sagu, diisi dengan telur ayam dan disajikan dengan kuah cuka (cuko) yang pedas, manis, dan asam.", tags: ["Seafood", "Gorengan", "Pedas"], bahan: ["500 gr ikan tenggiri giling", "400 gr tepung sagu", "3 butir telur ayam", "Bahan cuko (gula merah, cuka, cabai, bawang putih)"], instruksi: ["Campur ikan, air, dan garam. Uleni dengan tepung sagu hingga kalis. Bentuk kantung, isi dengan telur, lalu tutup rapat.", "Rebus pempek dalam air mendidih hingga mengapung dan matang.", "Goreng pempek sebelum disajikan. Potong-potong dan siram dengan kuah cuko."] },
+        { nama: "Opor Ayam Lebaran", gambar: "https://images.unsplash.com/photo-1623855033481-c7ac72b4cb14?q=80&w=800", waktu: "70 Menit", kesulitan: "Sedang", deskripsi: "Ayam yang dimasak dalam kuah santan kuning yang gurih dan kaya rempah. Hidangan wajib saat merayakan hari raya.", tags: ["Ayam", "Berkuah", "Acara Spesial"], bahan: ["1 ekor ayam, potong sesuai selera", "1 liter santan", "Bumbu halus (ketumbar, jintan, kemiri, kunyit)", "Serai, lengkuas, daun salam"], instruksi: ["Tumis bumbu halus beserta serai, lengkuas, dan daun salam hingga harum.", "Masukkan potongan ayam, aduk hingga berubah warna.", "Tuangkan santan, bumbui dengan garam dan gula. Masak dengan api kecil hingga ayam empuk dan bumbu meresap."] },
+        { nama: "Martabak Telur Spesial", gambar: "https://images.unsplash.com/photo-1594978583482-72535a8a68c8?q=80&w=800", waktu: "35 Menit", kesulitan: "Sedang", deskripsi: "Martabak asin dengan isian daging cincang, telur bebek, dan daun bawang, dibungkus kulit tipis yang renyah saat digoreng.", tags: ["Daging", "Gorengan", "Street Food"], bahan: ["Kulit lumpia/martabak siap pakai", "250 gr daging sapi cincang", "4 butir telur bebek", "5 batang daun bawang, iris", "Bumbu kari bubuk"], instruksi: ["Tumis daging cincang dengan bumbu kari hingga matang. Sisihkan.", "Dalam mangkuk, kocok telur bebek, masukkan irisan daun bawang dan tumisan daging. Aduk rata.", "Ambil selembar kulit, letakkan di wajan berisi minyak panas, tuang adonan isi, lipat cepat. Goreng hingga matang."] },
+        { nama: "Mie Goreng Jawa", gambar: "https://images.unsplash.com/photo-1585032226651-759b368d7246?q=80&w=800", waktu: "30 Menit", kesulitan: "Mudah", deskripsi: "Mie goreng dengan cita rasa manis-gurih yang khas, menggunakan bumbu ulek dan campuran sayuran seperti sawi dan kol.", tags: ["Nasi", "Cepat & Mudah", "Street Food"], bahan: ["200 gr mie telur, rebus", "Suwiran ayam goreng", "Telur, orak-arik", "Sawi hijau, kol", "Kecap manis", "Bumbu halus (kemiri, bawang, ebi)"], instruksi: ["Tumis bumbu halus hingga harum.", "Masukkan telur orak-arik dan suwiran ayam, aduk.", "Masukkan sayuran, masak hingga sedikit layu. Tambahkan mie, kecap manis, garam, dan merica. Aduk rata hingga matang."] },
+        { nama: "Siomay Bandung", gambar: "https://images.unsplash.com/photo-1548102015-3213504a3a69?q=80&w=800", waktu: "60 Menit", kesulitan: "Sedang", deskripsi: "Jajanan khas Bandung berisi siomay ikan, tahu, kentang, pare, dan telur rebus yang dikukus, lalu disiram saus kacang.", tags: ["Seafood", "Kukus", "Kacang"], bahan: ["Adonan siomay (ikan tenggiri & sagu)", "Tahu putih, kentang, pare, telur", "Bahan saus kacang", "Jeruk limau"], instruksi: ["Isi tahu dan pare dengan adonan siomay. Kukus bersama siomay, kentang, dan telur hingga matang.", "Haluskan bahan saus kacang, masak dengan air hingga mengental.", "Sajikan siomay dan pelengkapnya dengan siraman saus kacang, kecap manis, dan perasan jeruk limau."] },
+        { nama: "Tahu Gejrot Cirebon", gambar: "https://source.unsplash.com/800x800/?tahu-gejrot", waktu: "15 Menit", kesulitan: "Mudah", deskripsi: "Tahu goreng pong yang dipotong kecil-kecil, lalu disiram kuah pedas asam yang dibuat dari cabai, bawang, dan cuka.", tags: ["Gorengan", "Pedas", "Cepat & Mudah"], bahan: ["10 buah tahu pong", "Kuah: air, gula merah, cuka, kecap manis", "Bumbu ulek kasar (cabai rawit, bawang merah, bawang putih)"], instruksi: ["Rebus bahan kuah hingga mendidih dan gula larut. Saring dan dinginkan.", "Goreng tahu pong hingga kering, potong-potong dan letakkan di piring/cobek.", "Ulek kasar bumbu, siramkan ke atas tahu, lalu tuangkan kuah. Sajikan segera."] },
+        { nama: "Capcay Kuah Kental", gambar: "https://source.unsplash.com/800x800/?capcay", waktu: "30 Menit", kesulitan: "Mudah", deskripsi: "Tumisan aneka sayuran dengan tambahan bakso, ayam, atau seafood, dimasak dengan kuah gurih yang dikentalkan.", tags: ["Sayuran", "Berkuah", "Cepat & Mudah"], bahan: ["Wortel, kembang kol, sawi putih, brokoli", "Bakso sapi, iris", "Daging ayam fillet", "Bawang putih, geprek", "Larutan maizena"], instruksi: ["Tumis bawang putih hingga harum, masukkan ayam dan bakso, masak hingga berubah warna.", "Masukkan sayuran yang keras (wortel, kembang kol), tambahkan sedikit air, masak hingga setengah empuk.", "Masukkan sisa sayuran, bumbui dengan saus tiram, garam, merica. Tuang larutan maizena, aduk hingga mengental."] },
+        { nama: "Sop Buntut", gambar: "https://source.unsplash.com/800x800/?oxtail-soup", waktu: "2 Jam", kesulitan: "Sedang", deskripsi: "Sop buntut sapi dengan kuah bening kaya rempah, disajikan dengan potongan wortel, kentang, dan taburan seledri serta bawang goreng.", tags: ["Daging", "Berkuah", "Tradisional"], bahan: ["1 kg buntut sapi", "2 buah wortel, potong", "2 buah kentang, potong", "Bumbu sop lengkap (pala, cengkeh, kayu manis)", "Daun bawang & seledri"], instruksi: ["Rebus buntut sapi hingga empuk, buang air rebusan pertama.", "Rebus kembali dengan air baru. Tumis bumbu halus, masukkan ke dalam rebusan buntut.", "Masukkan wortel dan kentang, masak hingga matang. Sajikan dengan taburan daun bawang, seledri, dan bawang goreng."] },
+        { nama: "Ayam Betutu Bali", gambar: "https://source.unsplash.com/800x800/?balinese-chicken", waktu: "4 Jam", kesulitan: "Sulit", deskripsi: "Ayam utuh yang dimasak dengan bumbu 'base genep' khas Bali. Proses masak yang lama membuat bumbu meresap sempurna dan dagingnya sangat empuk.", tags: ["Ayam", "Pedas", "Acara Spesial"], bahan: ["1 ekor ayam utuh", "Bumbu base genep Bali", "Daun singkong", "Daun pisang untuk membungkus"], instruksi: ["Lumuri seluruh permukaan ayam dengan bumbu base genep, termasuk bagian dalamnya.", "Masukkan daun singkong yang sudah dicampur bumbu ke dalam perut ayam.", "Bungkus rapat dengan daun pisang, lalu kukus selama 2 jam, kemudian panggang 1 jam hingga matang."] },
+        { nama: "Ketoprak Jakarta", gambar: "https://source.unsplash.com/800x800/?ketoprak", waktu: "30 Menit", kesulitan: "Mudah", deskripsi: "Makanan khas Jakarta berisi ketupat, tahu, bihun, dan tauge yang disiram bumbu kacang dan diberi kecap manis serta kerupuk.", tags: ["Sayuran", "Kacang", "Vegetarian"], bahan: ["Ketupat/lontong", "Tahu goreng", "Bihun, seduh", "Tauge, seduh", "Bumbu kacang", "Kecap manis", "Kerupuk"], instruksi: ["Ulek bawang putih, cabai, dan kacang tanah goreng.", "Tambahkan air, gula merah, dan garam, ulek hingga menjadi saus kental.", "Tata potongan ketupat, tahu, bihun, dan tauge di piring, siram dengan bumbu kacang. Beri kecap dan kerupuk."] },
+        { nama: "Iga Bakar Madu", gambar: "https://source.unsplash.com/800x800/?grilled-ribs", waktu: "90 Menit", kesulitan: "Sedang", deskripsi: "Iga sapi empuk yang dibumbui dengan saus manis-gurih dari madu dan kecap, lalu dibakar hingga sedikit berkaramel.", tags: ["Daging", "Panggang", "Manis"], bahan: ["750 gr iga sapi", "5 sdm madu", "6 sdm kecap manis", "Bumbu halus (bawang, jahe, merica)", "Saus tiram"], instruksi: ["Presto iga sapi dengan bumbu halus hingga empuk.", "Campurkan madu, kecap manis, dan saus tiram. Oleskan pada iga.", "Bakar iga di atas bara api atau teflon sambil terus diolesi sisa bumbu hingga harum dan matang."] },
+        { nama: "Nasi Liwet Sunda", gambar: "https://source.unsplash.com/800x800/?nasi-liwet", waktu: "60 Menit", kesulitan: "Sedang", deskripsi: "Nasi gurih yang dimasak dengan santan, sereh, dan daun salam, biasanya disajikan dengan ikan teri, ayam goreng, dan lalapan.", tags: ["Nasi", "Tradisional", "Lauk Pauk"], bahan: ["4 cup beras", "Santan secukupnya", "2 batang serai", "3 lembar daun salam", "50 gr ikan teri, goreng", "Garam"], instruksi: ["Cuci bersih beras, masukkan ke dalam panci kastrol atau rice cooker.", "Masukkan santan, serai, daun salam, dan garam. Aduk rata.", "Masak nasi hingga matang. Sesaat sebelum matang, masukkan ikan teri goreng, aduk. Sajikan dengan lauk pelengkap."] },
+        { nama: "Cumi Saus Padang", gambar: "https://source.unsplash.com/800x800/?padang-squid", waktu: "30 Menit", kesulitan: "Mudah", deskripsi: "Cumi segar yang dimasak dalam bumbu saus Padang yang pedas, asam, dan sedikit manis, dengan kuah kental yang menggugah selera.", tags: ["Seafood", "Pedas", "Cepat & Mudah"], bahan: ["500 gr cumi, potong", "1 buah jagung manis, potong", "Saus tomat & saus sambal", "Bumbu halus (cabai, bawang, jahe)", "Daun bawang"], instruksi: ["Tumis bumbu halus hingga harum, masukkan saus tomat dan saus sambal.", "Masukkan cumi dan jagung, masak hingga cumi matang (jangan terlalu lama agar tidak alot).", "Bumbui dengan garam dan gula, tambahkan larutan maizena untuk mengentalkan. Taburi daun bawang sebelum diangkat."] },
+        { nama: "Sayur Asem Jakarta", gambar: "https://source.unsplash.com/800x800/?sayur-asem", waktu: "45 Menit", kesulitan: "Mudah", deskripsi: "Sayur berkuah bening dengan cita rasa asam segar dari asam jawa, berisi aneka sayuran seperti jagung, labu siam, dan kacang panjang.", tags: ["Sayuran", "Berkuah", "Tradisional"], bahan: ["1 paket sayur asem", "Jagung manis, potong", "Labu siam, potong", "Kacang panjang", "Air asam jawa", "Bumbu halus (kemiri, terasi, cabai)"], instruksi: ["Didihkan air, masukkan bumbu halus, lengkuas, dan daun salam.", "Masukkan sayuran yang paling keras seperti jagung dan melinjo, rebus hingga setengah matang.", "Masukkan sisa sayuran dan air asam jawa. Bumbui dengan garam dan gula, masak hingga semua matang."] },
+        { nama: "Tongseng Kambing", gambar: "https://source.unsplash.com/800x800/?tongseng", waktu: "60 Menit", kesulitan: "Sedang", deskripsi: "Gulai kambing pedas manis yang dimasak dengan tambahan sayuran seperti kol dan tomat, serta kecap manis yang melimpah.", tags: ["Daging", "Berkuah", "Pedas"], bahan: ["500 gr daging kambing, potong dadu", "250 ml santan", "100 gr kol, iris kasar", "2 buah tomat, potong", "Kecap manis", "Bumbu halus tongseng"], instruksi: ["Tumis bumbu halus hingga harum, masukkan potongan daging kambing, aduk hingga berubah warna.", "Tuang santan dan air, masak hingga daging empuk.", "Masukkan kol, tomat, cabai rawit utuh, dan kecap manis. Masak sebentar hingga sayuran layu. Sajikan panas."] },
+        { nama: "Pepes Ikan Mas", gambar: "https://source.unsplash.com/800x800/?pepes-ikan", waktu: "75 Menit", kesulitan: "Sedang", deskripsi: "Ikan mas yang dilumuri bumbu kuning kaya rempah, lalu dibungkus daun pisang dan dikukus atau dibakar hingga matang.", tags: ["Seafood", "Kukus", "Tradisional"], bahan: ["1 ekor ikan mas", "Bumbu halus kuning (kunyit, bawang, kemiri)", "Daun kemangi", "Tomat, iris", "Daun pisang"], instruksi: ["Lumuri ikan mas dengan bumbu halus hingga merata.", "Letakkan ikan di atas daun pisang, taburi dengan kemangi, irisan tomat, dan cabai rawit.", "Bungkus rapat dan sematkan dengan lidi. Kukus selama 45 menit, lalu bakar sebentar untuk aroma yang lebih wangi."] },
+        { nama: "Bakwan Sayur (Bala-Bala)", gambar: "https://source.unsplash.com/800x800/?bakwan", waktu: "30 Menit", kesulitan: "Mudah", deskripsi: "Gorengan renyah yang terbuat dari adonan tepung terigu dan aneka irisan sayuran seperti wortel, kol, dan tauge.", tags: ["Sayuran", "Gorengan", "Cepat & Mudah"], bahan: ["150 gr tepung terigu", "1 buah wortel, iris korek api", "100 gr kol, iris tipis", "50 gr tauge", "Daun bawang", "Air secukupnya"], instruksi: ["Campur tepung terigu dengan bumbu halus (bawang putih, merica, garam).", "Tuang air sedikit demi sedikit sambil diaduk hingga menjadi adonan kental.", "Masukkan semua sayuran, aduk rata. Goreng sesendok demi sesendok dalam minyak panas hingga kuning keemasan."] },
+        { nama: "Rawon Daging Surabaya", gambar: "https://source.unsplash.com/800x800/?rawon", waktu: "2.5 Jam", kesulitan: "Sedang", deskripsi: "Sup daging berkuah hitam pekat yang khas karena menggunakan kluwek sebagai bumbu utama. Disajikan dengan tauge pendek dan sambal terasi.", tags: ["Daging", "Berkuah", "Tradisional"], bahan: ["500 gr daging sapi sandung lamur", "6 buah kluwek, ambil isinya", "Bumbu rawon lengkap (ketumbar, jintan, kunyit, dll)", "Serai, lengkuas, daun jeruk", "Tauge pendek"], instruksi: ["Rebus daging hingga empuk, potong dadu. Simpan air kaldunya.", "Haluskan bumbu rawon bersama isi kluwek, lalu tumis hingga matang dan harum.", "Masukkan bumbu tumis ke dalam kaldu, didihkan. Masukkan kembali potongan daging, masak hingga bumbu meresap. Sajikan dengan pelengkap."] },
+        { nama: "Nasi Uduk Komplit", gambar: "https://source.unsplash.com/800x800/?nasi-uduk", waktu: "75 Menit", kesulitan: "Sedang", deskripsi: "Nasi yang dimasak dengan santan dan rempah, menghasilkan rasa gurih dan aroma wangi. Disajikan dengan berbagai lauk pauk.", tags: ["Nasi", "Tradisional", "Lauk Pauk"], bahan: ["500 gr beras", "700 ml santan", "Daun salam, serai, cengkeh", "Lauk pelengkap (ayam goreng, tempe orek, telur dadar)", "Bawang goreng"], instruksi: ["Cuci bersih beras. Masak bersama santan, daun salam, serai, cengkeh, dan garam hingga menjadi nasi aron.", "Kukus nasi aron hingga matang sempurna (sekitar 30 menit).", "Sajikan nasi uduk hangat dengan lauk pauk pelengkap dan taburan bawang goreng."] },
+        { nama: "Sayur Lodeh", gambar: "https://source.unsplash.com/800x800/?sayur-lodeh", waktu: "40 Menit", kesulitan: "Mudah", deskripsi: "Sayur berkuah santan khas Indonesia dengan isian beragam sayuran seperti labu siam, kacang panjang, dan terong. Rasanya gurih dan sedikit pedas.", tags: ["Sayuran", "Berkuah", "Vegetarian"], bahan: ["Labu siam, potong dadu", "Kacang panjang, potong", "Terong ungu, potong", "Santan", "Bumbu iris (bawang merah, bawang putih, cabai)"], instruksi: ["Didihkan santan encer, masukkan bumbu iris, lengkuas, dan daun salam.", "Masukkan sayuran yang keras terlebih dahulu (labu siam, melinjo), masak hingga setengah matang.", "Tambahkan sisa sayuran dan santan kental. Masak hingga semua matang, bumbui dengan garam dan gula."] },
+        { nama: "Pasta Aglio e Olio", gambar: "https://images.unsplash.com/photo-1598866594240-a3b5a75ab206?q=80&w=800", waktu: "20 Menit", kesulitan: "Mudah", deskripsi: "Pasta klasik Italia yang simpel namun penuh rasa, dibuat dengan bawang putih, minyak zaitun, dan serpihan cabai.", tags: ["Pasta", "Cepat & Mudah", "Pedas"], bahan: ["200 gr spaghetti", "4 siung bawang putih, iris tipis", "5 sdm minyak zaitun extra virgin", "1 sdt cabai kering serpih (chili flakes)", "Peterseli segar, cincang", "Garam secukupnya"], instruksi: ["Rebus spaghetti hingga al dente, sisihkan sedikit air rebusannya.", "Panaskan minyak zaitun, tumis bawang putih hingga harum (jangan sampai gosong). Masukkan chili flakes.", "Masukkan spaghetti dan sedikit air rebusan ke dalam tumisan. Aduk rata, bumbui dengan garam. Sajikan dengan taburan peterseli."] }
+    ],
+    minuman: [
+        { nama: "Es Kopi Susu Gula Aren", gambar: "https://images.unsplash.com/photo-1571362243946-b8a38c4a51e6?q=80&w=800", waktu: "5 Menit", kesulitan: "Mudah", deskripsi: "Minuman kopi kekinian yang memadukan espresso, susu segar, dan manisnya gula aren cair. Sederhana, cepat, dan menyegarkan.", tags: ["Kopi", "Susu", "Cepat & Mudah"], bahan: ["1 shot espresso (atau 50 ml kopi kental)", "150 ml susu UHT full cream", "30 ml gula aren cair", "Es batu secukupnya"], instruksi: ["Tuang gula aren cair ke dasar gelas.", "Masukkan es batu hingga penuh.", "Tuang susu UHT perlahan, lalu tuangkan espresso di atasnya. Aduk sebelum dinikmati."] },
+        { nama: "Jus Mangga Yakult", gambar: "https://images.unsplash.com/photo-1553531384-411a247ccd73?q=80&w=800", waktu: "10 Menit", kesulitan: "Mudah", deskripsi: "Kombinasi rasa manis dari mangga matang dan sedikit asam segar dari Yakult, menciptakan minuman yang sehat dan lezat.", tags: ["Buah", "Sehat", "Cepat & Mudah"], bahan: ["1 buah mangga matang, potong-potong", "2 botol Yakult", "Es batu secukupnya", "1 sdm madu (opsional)"], instruksi: ["Masukkan potongan mangga, Yakult, dan es batu ke dalam blender.", "Blender hingga semua bahan halus dan tercampur rata.", "Cicipi rasanya, tambahkan madu jika suka lebih manis. Sajikan segera."] },
+        { nama: "Es Teh Leci", gambar: "https://images.unsplash.com/photo-1597827112343-a6b3d3d6b048?q=80&w=800", waktu: "15 Menit", kesulitan: "Mudah", deskripsi: "Teh manis klasik dengan sentuhan rasa dan aroma buah leci yang eksotis, cocok untuk melepas dahaga di siang hari.", tags: ["Teh", "Buah", "Dingin"], bahan: ["1 kantong teh hitam", "200 ml air panas", "5-6 buah leci kalengan beserta sirupnya", "Es batu secukupnya", "Daun mint untuk hiasan"], instruksi: ["Seduh teh dalam air panas selama 3-5 menit, angkat kantong teh. Biarkan dingin.", "Masukkan buah leci dan 2 sdm sirup leci ke dalam gelas.", "Tambahkan es batu, tuang teh yang sudah dingin. Hias dengan daun mint."] },
+        { nama: "Green Smoothie Sehat", gambar: "https://images.unsplash.com/photo-1506464539304-c5d7c2fe3232?q=80&w=800", waktu: "10 Menit", kesulitan: "Mudah", deskripsi: "Smoothie kaya nutrisi yang terbuat dari campuran sayuran hijau dan buah-buahan, cara enak untuk memulai hari sehat Anda.", tags: ["Sayuran", "Buah", "Sehat", "Sarapan"], bahan: ["1 genggam bayam segar", "1 buah pisang beku", "1/2 buah nanas, potong", "150 ml air kelapa atau air biasa", "1 sdm biji chia (chia seeds)"], instruksi: ["Masukkan semua bahan ke dalam blender.", "Proses hingga halus dan tidak ada gumpalan.", "Tuang ke dalam gelas dan nikmati segera untuk nutrisi maksimal."] },
+        { nama: "Cokelat Panas Klasik", gambar: "https://images.unsplash.com/photo-1542354245-5735f002eb75?q=80&w=800", waktu: "10 Menit", kesulitan: "Mudah", deskripsi: "Minuman cokelat panas yang kental dan kaya rasa, sempurna untuk dinikmati saat cuaca dingin atau sebagai teman bersantai.", tags: ["Cokelat", "Susu", "Panas"], bahan: ["250 ml susu cair", "2 sdm bubuk kakao kualitas baik", "1 sdm gula pasir (sesuai selera)", "Sejumput garam", "Marshmallow atau whipped cream untuk topping"], instruksi: ["Panaskan susu di dalam panci dengan api kecil, jangan sampai mendidih.", "Di mangkuk kecil, campur bubuk kakao, gula, dan garam dengan sedikit susu panas, aduk hingga menjadi pasta.", "Tuang pasta cokelat ke dalam panci susu, aduk rata hingga tidak ada yang menggumpal. Masak sebentar. Sajikan dengan topping favorit."] },
+        { nama: "Wedang Jahe", gambar: "https://images.unsplash.com/photo-1615481232847-59c4039a8f4c?q=80&w=800", waktu: "20 Menit", kesulitan: "Mudah", deskripsi: "Minuman tradisional penghangat badan yang terbuat dari jahe segar, gula merah, dan seringkali ditambahkan rempah lain seperti serai dan cengkeh.", tags: ["Rempah", "Sehat", "Panas"], bahan: ["100 gr jahe, bakar dan geprek", "150 gr gula merah", "1 liter air", "2 batang serai, memarkan", "3 butir cengkeh"], instruksi: ["Rebus air bersama jahe, gula merah, serai, dan cengkeh hingga mendidih dan aroma rempahnya keluar kuat.", "Kecilkan api, masak lagi selama 10-15 menit agar saripatinya keluar.", "Saring wedang jahe dan sajikan selagi panas."] },
+        { nama: "Es Cendol Dawet", gambar: "https://images.unsplash.com/photo-1572489052184-48614f2c3e39?q=80&w=800", waktu: "30 Menit", kesulitan: "Sedang", deskripsi: "Minuman dingin pelepas dahaga berisi cendol tepung beras, disiram kuah santan gurih dan saus gula merah yang legit.", tags: ["Santan", "Manis", "Dingin"], bahan: ["100 gr tepung beras", "50 gr tepung tapioka", "Pasta pandan", "Kuah santan", "Saus gula merah (kinca)", "Es serut"], instruksi: ["Campur tepung beras, tapioka, pasta pandan, dan air. Masak sambil diaduk hingga menjadi adonan kental dan meletup-letup.", "Cetak adonan menggunakan cetakan cendol di atas wadah berisi air es. Saring cendolnya.", "Sajikan cendol dalam gelas dengan es serut, kuah santan, dan saus gula merah."] },
+        { nama: "Bajigur", gambar: "https://images.unsplash.com/photo-1631112342155-a4f61b0a8d6e?q=80&w=800", waktu: "25 Menit", kesulitan: "Mudah", deskripsi: "Minuman hangat khas Sunda yang terbuat dari santan, gula aren, kopi, dan jahe. Rasanya manis, gurih, dengan sedikit sentuhan pahit kopi.", tags: ["Santan", "Rempah", "Panas"], bahan: ["1 liter santan", "200 gr gula aren", "2 sdm kopi hitam bubuk", "3 cm jahe, bakar dan memarkan", "Daun pandan"], instruksi: ["Rebus santan, gula aren, jahe, dan daun pandan hingga mendidih sambil terus diaduk agar santan tidak pecah.", "Masukkan kopi bubuk, aduk rata. Masak sebentar.", "Saring dan sajikan panas, seringkali ditambahkan potongan kolang-kaling."] },
+        { nama: "Jamu Kunyit Asam", gambar: "https://images.unsplash.com/photo-1596703318859-96d598e3b5a1?q=80&w=800", waktu: "30 Menit", kesulitan: "Mudah", deskripsi: "Minuman herbal tradisional yang dipercaya memiliki banyak manfaat kesehatan, dibuat dari perpaduan kunyit, asam jawa, dan gula merah.", tags: ["Rempah", "Sehat", "Tradisional"], bahan: ["200 gr kunyit, parut", "50 gr asam jawa", "150 gr gula merah", "1.5 liter air", "Sejumput garam"], instruksi: ["Rebus air bersama kunyit parut, asam jawa, gula merah, dan garam hingga mendidih.", "Kecilkan api dan biarkan mendidih perlahan selama 15-20 menit hingga semua sari larut.", "Saring jamu menggunakan kain bersih atau saringan yang sangat halus. Dinginkan dan sajikan."] },
+        { nama: "Avocado Coffee Float", gambar: "https://images.unsplash.com/photo-1616083375791-201524e23323?q=80&w=800", waktu: "15 Menit", kesulitan: "Mudah", deskripsi: "Jus alpukat kental manis yang disajikan dalam gelas, disiram dengan kopi hitam pekat, dan diberi satu scoop es krim vanila di atasnya.", tags: ["Buah", "Kopi", "Dingin"], bahan: ["1 buah alpukat matang", "50 ml susu kental manis cokelat", "100 ml air/susu cair", "1 shot espresso (atau kopi kental)", "1 scoop es krim vanila"], instruksi: ["Blender daging alpukat, susu kental manis, dan air hingga halus. Tuang ke dalam gelas.", "Tuangkan espresso secara perlahan di atas jus alpukat.", "Letakkan satu scoop es krim vanila di paling atas. Sajikan segera."] },
+        { nama: "Matcha Latte", gambar: "https://images.unsplash.com/photo-1563822558661-81788755b40c?q=80&w=800", waktu: "10 Menit", kesulitan: "Mudah", deskripsi: "Minuman populer dengan rasa teh hijau Jepang yang khas dan sedikit pahit, dipadukan dengan kelembutan susu steamed.", tags: ["Teh", "Susu", "Panas"], bahan: ["1-2 sdt bubuk matcha kualitas baik", "30 ml air panas (suhu 80°C)", "200 ml susu segar", "1 sdm gula atau pemanis lain (opsional)"], instruksi: ["Ayak bubuk matcha ke dalam cangkir untuk menghindari gumpalan.", "Tuang air panas, aduk cepat dengan pengaduk bambu (chasen) atau milk frother hingga berbusa.", "Panaskan susu (jangan sampai mendidih), buat busa (foam) jika suka. Tuang susu ke dalam larutan matcha. Tambahkan pemanis jika perlu."] },
+        { nama: "Thai Iced Tea", gambar: "https://images.unsplash.com/photo-1506354666786-959d6d497f1a?q=80&w=800", waktu: "20 Menit", kesulitan: "Mudah", deskripsi: "Teh hitam pekat khas Thailand yang diberi rasa dengan rempah seperti adas bintang, disajikan dingin dengan campuran susu evaporasi dan susu kental manis.", tags: ["Teh", "Susu", "Dingin"], bahan: ["3 sdm bubuk teh Thailand", "500 ml air mendidih", "3 sdm gula pasir", "Susu evaporasi", "Susu kental manis", "Es batu"], instruksi: ["Seduh bubuk teh dengan air mendidih, diamkan selama 5-10 menit. Saring tehnya.", "Tambahkan gula ke dalam teh panas, aduk hingga larut. Biarkan dingin.", "Isi gelas dengan es batu hingga penuh. Tuang teh hingga 3/4 gelas. Tuangkan campuran susu evaporasi dan susu kental manis di atasnya."] },
+        { nama: "Virgin Mojito", gambar: "https://images.unsplash.com/photo-1551538850-75c1a8264560?q=80&w=800", waktu: "5 Menit", kesulitan: "Mudah", deskripsi: "Versi non-alkohol dari cocktail Mojito yang menyegarkan, dibuat dari daun mint, perasan jeruk nipis, gula, dan air soda.", tags: ["Buah", "Dingin", "Cepat & Mudah"], bahan: ["10 lembar daun mint", "1/2 buah jeruk nipis, potong-potong", "2 sdt gula pasir", "Air soda tawar/sprite", "Es batu"], instruksi: ["Masukkan daun mint, potongan jeruk nipis, dan gula ke dalam gelas.", "Tekan-tekan (muddle) dengan lembut menggunakan ujung sendok untuk mengeluarkan aroma dan sarinya.", "Tambahkan es batu hingga penuh, lalu tuangkan air soda hingga memenuhi gelas. Aduk perlahan dan hias."] },
+        { nama: "Infused Water", gambar: "https://images.unsplash.com/photo-1541599188776-446c3c631022?q=80&w=800", waktu: "5 Menit (+ 2 Jam)", kesulitan: "Mudah", deskripsi: "Cara sehat dan menyegarkan untuk minum air putih dengan menambahkan rasa alami dari potongan buah-buahan, sayuran, atau herbal.", tags: ["Buah", "Sehat", "Dingin"], bahan: ["1 liter air mineral", "1/2 buah lemon, iris tipis", "1/2 buah timun, iris tipis", "Beberapa lembar daun mint"], instruksi: ["Masukkan semua irisan lemon, timun, dan daun mint ke dalam botol atau pitcher.", "Tuangkan air mineral hingga penuh. Tutup rapat.", "Simpan di dalam kulkas selama minimal 2-4 jam agar rasa dan aromanya menyatu dengan air. Sajikan dingin."] },
+        { nama: "Es Teler", gambar: "https://source.unsplash.com/800x800/?es-teler,indonesian-fruit-cocktail", waktu: "20 Menit", kesulitan: "Mudah", deskripsi: "Koktail buah khas Indonesia berisi potongan alpukat, nangka, kelapa muda, dan cincau yang disajikan dengan es serut, santan, dan susu kental manis.", tags: ["Buah", "Santan", "Dingin"], bahan: ["1 buah alpukat, kerok", "100 gr nangka, potong dadu", "Daging kelapa muda", "Santan", "Susu kental manis", "Sirup cocopandan", "Es serut"], instruksi: ["Tata potongan buah, kelapa muda, dan cincau di dalam mangkuk.", "Beri es serut di atasnya.", "Siram dengan santan, susu kental manis, dan sirup cocopandan. Sajikan segera."] },
+        { nama: "Es Pisang Ijo", gambar: "https://source.unsplash.com/800x800/?es-pisang-ijo", waktu: "60 Menit", kesulitan: "Sulit", deskripsi: "Jajanan sekaligus minuman khas Makassar, berupa pisang yang dibalut adonan hijau, disajikan dengan bubur sumsum, sirup, dan es.", tags: ["Buah", "Manis", "Dingin"], bahan: ["Pisang raja matang", "Adonan kulit hijau (tepung terigu, santan, pasta pandan)", "Bubur sumsum", "Sirup cocopandan", "Susu kental manis", "Es serut"], instruksi: ["Kukus pisang raja hingga matang. Sisihkan.", "Buat adonan kulit, dadar tipis, lalu balut pisang kukus dengan adonan tersebut. Kukus kembali hingga matang.", "Sajikan potongan pisang ijo dengan bubur sumsum, es serut, sirup, dan susu kental manis."] },
+        { nama: "Sekoteng", gambar: "https://source.unsplash.com/800x800/?sekoteng,ginger-drink", waktu: "30 Menit", kesulitan: "Mudah", deskripsi: "Minuman jahe hangat yang disajikan dengan berbagai isian seperti pacar cina, potongan roti, kacang tanah sangrai, dan kolang-kaling.", tags: ["Rempah", "Panas", "Tradisional"], bahan: ["Kuah jahe (air, jahe, gula)", "Pacar cina, rebus", "Kacang hijau, rebus", "Kacang tanah sangrai", "Potongan roti tawar", "Susu kental manis"], instruksi: ["Rebus air, jahe geprek, dan gula hingga mendidih dan wangi.", "Siapkan mangkuk, isi dengan pacar cina, kacang hijau, kacang tanah, dan roti.", "Siram dengan kuah jahe panas, tambahkan susu kental manis sesuai selera."] },
+        { nama: "Bir Pletok", gambar: "https://source.unsplash.com/800x800/?bir-pletok", waktu: "45 Menit", kesulitan: "Sedang", deskripsi: "Minuman tradisional Betawi non-alkohol yang kaya akan rempah seperti jahe, serai, dan kayu secang yang memberikan warna merah khas.", tags: ["Rempah", "Sehat", "Tradisional"], bahan: ["Jahe, serai, cengkeh, kayu manis", "Kayu secang", "Daun pandan", "Gula merah", "Air"], instruksi: ["Bakar jahe hingga harum, lalu geprek bersama serai.", "Rebus semua bahan rempah dengan air dan gula merah hingga mendidih dan warnanya menjadi merah pekat.", "Saring dan sajikan hangat atau dingin."] },
+        { nama: "Es Cincau Hijau", gambar: "https://source.unsplash.com/800x800/?grass-jelly-drink", waktu: "15 Menit (+ proses)", kesulitan: "Mudah", deskripsi: "Cincau hijau alami yang dibuat dari perasan daun cincau, disajikan dengan kuah santan dan sirup gula merah.", tags: ["Santan", "Manis", "Dingin"], bahan: ["Cincau hijau", "Kuah santan (santan, daun pandan, garam)", "Sirup gula merah", "Es batu"], instruksi: ["Kerok atau potong dadu cincau hijau.", "Rebus bahan kuah santan hingga mendidih sambil diaduk, dinginkan. Rebus bahan sirup gula merah hingga mengental, dinginkan.", "Sajikan cincau di gelas dengan es batu, siram dengan kuah santan dan sirup gula merah."] },
+        { nama: "Kopi Joss", gambar: "https://source.unsplash.com/800x800/?charcoal-coffee", waktu: "5 Menit", kesulitan: "Mudah", deskripsi: "Kopi hitam panas khas Yogyakarta yang unik karena disajikan dengan celupan arang membara di dalamnya.", tags: ["Kopi", "Panas", "Tradisional"], bahan: ["2 sdm kopi bubuk kasar", "Gula pasir sesuai selera", "200 ml air mendidih", "1 buah arang kayu, bakar hingga membara"], instruksi: ["Seduh kopi dan gula dengan air mendidih di dalam gelas tahan panas.", "Aduk hingga rata.", "Celupkan arang yang masih membara ke dalam kopi. Sajikan setelah suara 'josss' berhenti dan arang diangkat."] },
+        { nama: "Susu Telur Madu Jahe (STMJ)", gambar: "https://source.unsplash.com/800x800/?egg-milk-drink", waktu: "10 Menit", kesulitan: "Mudah", deskripsi: "Minuman penambah stamina yang terbuat dari campuran susu panas, kuning telur ayam kampung, madu, dan jahe.", tags: ["Susu", "Rempah", "Sehat"], bahan: ["200 ml susu segar", "1 butir kuning telur ayam kampung", "2 sdm madu", "3 cm jahe, memarkan"], instruksi: ["Rebus susu dengan jahe hingga panas tapi tidak mendidih.", "Di gelas, kocok kuning telur dan madu hingga tercampur.", "Tuang susu jahe panas ke dalam gelas sambil terus diaduk cepat agar telur tidak matang. Sajikan segera."] },
+        { nama: "Es Lidah Buaya", gambar: "https://source.unsplash.com/800x800/?aloe-vera-drink", waktu: "15 Menit", kesulitan: "Mudah", deskripsi: "Minuman segar berisi potongan lidah buaya, biji selasih, dan sirup cocopandan atau leci.", tags: ["Buah", "Dingin", "Cepat & Mudah"], bahan: ["Daging lidah buaya siap pakai", "1 sdm biji selasih, rendam", "Sirup rasa leci/cocopandan", "Air es", "Es batu"], instruksi: ["Siapkan gelas, masukkan potongan lidah buaya dan biji selasih.", "Tambahkan es batu hingga penuh.", "Tuangkan sirup sesuai selera dan tambahkan air es. Aduk rata."] },
+        { nama: "Wedang Ronde", gambar: "https://source.unsplash.com/800x800/?wedang-ronde", waktu: "45 Menit", kesulitan: "Sedang", deskripsi: "Bola-bola ketan berisi kacang manis yang disajikan dalam kuah jahe hangat, cocok untuk malam hari.", tags: ["Rempah", "Panas", "Tradisional"], bahan: ["Adonan ronde (tepung ketan, air)", "Isian ronde (kacang tanah sangrai, gula)", "Kuah jahe"], instruksi: ["Buat bola-bola dari adonan ketan, pipihkan, isi dengan isian kacang, lalu bulatkan kembali.", "Rebus ronde dalam air mendidih hingga mengapung. Angkat.", "Sajikan ronde dalam mangkuk dan siram dengan kuah jahe panas."] },
+        { nama: "Teh Talua", gambar: "https://source.unsplash.com/800x800/?egg-tea", waktu: "10 Menit", kesulitan: "Sedang", deskripsi: "Teh khas Sumatera Barat yang dibuat dengan mengocok kuning telur dan gula hingga mengembang, lalu disiram dengan teh panas.", tags: ["Teh", "Susu", "Tradisional"], bahan: ["1 butir kuning telur bebek/ayam kampung", "2 sdm gula pasir", "1 kantong teh hitam seduh pekat", "Perasan jeruk nipis"], instruksi: ["Kocok kuning telur dan gula dalam gelas hingga putih dan mengembang.", "Tuangkan teh panas dari jarak yang agak tinggi agar menghasilkan buih.", "Beri beberapa tetes perasan jeruk nipis untuk menghilangkan bau amis. Aduk dan sajikan."] },
+        { nama: "Lemon Squash", gambar: "https://source.unsplash.com/800x800/?lemon-squash", waktu: "5 Menit", kesulitan: "Mudah", deskripsi: "Minuman soda klasik yang menyegarkan, dibuat dari perasan lemon asli, sirup gula, dan air soda.", tags: ["Buah", "Dingin", "Cepat & Mudah"], bahan: ["1 buah lemon, peras airnya", "30 ml sirup gula (simple syrup)", "Air soda", "Irisan lemon dan daun mint", "Es batu"], instruksi: ["Masukkan es batu ke dalam gelas.", "Tuang perasan lemon dan sirup gula.", "Penuhi gelas dengan air soda. Aduk perlahan dan hias dengan irisan lemon serta daun mint."] },
+        { nama: "Es Kelapa Jeruk", gambar: "https://source.unsplash.com/800x800/?coconut-orange-drink", waktu: "10 Menit", kesulitan: "Mudah", deskripsi: "Kombinasi sempurna antara air kelapa muda segar dengan perasan jeruk manis, memberikan sensasi segar ganda.", tags: ["Buah", "Dingin", "Sehat"], bahan: ["Daging dan air dari 1 buah kelapa muda", "2 buah jeruk manis, peras airnya", "Es batu", "Sedikit gula cair (opsional)"], instruksi: ["Campurkan air kelapa dan kerokan daging kelapa muda dalam wadah besar.", "Tuangkan air perasan jeruk, aduk rata.", "Tambahkan gula cair jika perlu. Sajikan dalam gelas berisi es batu."] },
+        { nama: "Strawberry Milkshake", gambar: "https://source.unsplash.com/800x800/?strawberry-milkshake", waktu: "10 Menit", kesulitan: "Mudah", deskripsi: "Milkshake klasik yang lembut dan creamy, dibuat dari buah stroberi asli, es krim vanila, dan susu.", tags: ["Buah", "Susu", "Dingin"], bahan: ["10 buah stroberi segar/beku", "3 scoop es krim vanila", "150 ml susu cair dingin", "Whipped cream untuk hiasan"], instruksi: ["Masukkan stroberi, es krim vanila, dan susu ke dalam blender.", "Blender hingga halus dan mengental.", "Tuang ke dalam gelas tinggi, semprotkan whipped cream di atasnya. Hias dengan potongan stroberi."] },
+        { nama: "Wedang Uwuh", gambar: "https://source.unsplash.com/800x800/?wedang-uwuh,herbal-drink", waktu: "20 Menit", kesulitan: "Mudah", deskripsi: "Minuman rempah khas Yogyakarta yang secara harfiah berarti 'teh sampah' karena terdiri dari berbagai macam dedaunan dan rempah.", tags: ["Rempah", "Panas", "Sehat"], bahan: ["Jahe", "Kayu secang", "Cengkeh dan daunnya", "Pala dan daunnya", "Kayu manis", "Gula batu"], instruksi: ["Geprek jahe, lalu masukkan semua bahan ke dalam gelas.", "Seduh dengan air mendidih.", "Aduk hingga gula batu larut dan air berubah warna menjadi kemerahan. Nikmati selagi hangat."] },
+        { nama: "Kopi Tarik", gambar: "https://source.unsplash.com/800x800/?pulled-coffee", waktu: "15 Menit", kesulitan: "Sedang", deskripsi: "Kopi susu yang dibuat dengan cara 'menarik' atau menuang dari satu wadah ke wadah lain berulang kali untuk menciptakan lapisan busa tebal.", tags: ["Kopi", "Susu", "Panas"], bahan: ["Kopi hitam pekat", "Susu kental manis", "Susu evaporasi (opsional)"], instruksi: ["Campurkan kopi panas dengan susu kental manis dalam sebuah cangkir besar (pitcher).", "Siapkan satu pitcher kosong lainnya.", "Tuang campuran kopi dari satu pitcher ke pitcher lain dari jarak yang cukup tinggi secara berulang hingga kopi menjadi dingin dan berbusa. Sajikan."] }
+    ]
+};
+
+// ===================================================================================
+// --- DOM ELEMENTS (Kode lebih terstruktur) ---
+// ===================================================================================
+const dom = {
+    loader: document.getElementById('loader-container'),
+    mainPage: document.getElementById('main-page'),
+    recipeListPage: document.getElementById('recipe-list-page'),
+    recipeGrid: document.getElementById('recipe-grid'),
+    recipeListTitle: document.getElementById('recipe-list-title'),
+    noResults: document.getElementById('no-results'),
+    backButton: document.getElementById('back-button'),
+    searchBar: document.getElementById('search-bar'),
+    filterTagsContainer: document.getElementById('filter-tags-container'),
+    recipeCount: document.getElementById('recipe-count'), // Tambahan
+    resetFiltersBtn: document.getElementById('reset-filters-btn'), // Tambahan
+    catMakanan: document.getElementById('cat-makanan'),
+    catMinuman: document.getElementById('cat-minuman'),
+    randomRecipeBtn: document.getElementById('random-recipe-btn'),
+    modal: document.getElementById('recipe-modal'),
+    modalContent: document.getElementById('modal-content'),
+    closeModalButton: document.getElementById('close-modal'),
+    modalImage: document.getElementById('modal-image'),
+    modalTitle: document.getElementById('modal-title'),
+    modalTime: document.getElementById('modal-time'),
+    modalDifficulty: document.getElementById('modal-difficulty'),
+    modalDescription: document.getElementById('modal-description'),
+    modalIngredients: document.getElementById('modal-ingredients'),
+    modalInstructions: document.getElementById('modal-instructions'),
+    scrollToTopBtn: document.getElementById('scroll-to-top'),
+};
+
+// ===================================================================================
+// --- GLOBAL STATE ---
+// ===================================================================================
+let currentCategory = '';
+let activeTags = new Set();
+
+// ===================================================================================
+// --- FUNCTIONS (Kode dioptimalkan) ---
+// ===================================================================================
+
+/**
+ * [PERBAIKAN] Render kartu resep dengan lazy loading.
+ * @param {Array} recipeArray The array of recipe objects to render.
+ */
+function renderRecipes(recipeArray) {
+    // Efek loading saat resep di-render
+    dom.recipeGrid.style.opacity = '0.5';
+    
+    setTimeout(() => {
+        dom.recipeGrid.innerHTML = '';
+        dom.noResults.classList.toggle('hidden', recipeArray.length > 0);
+        updateRecipeCount(recipeArray.length, recipes[currentCategory].length);
+
+        recipeArray.forEach((recipe, index) => {
+            const card = document.createElement('div');
+            card.className = 'recipe-card bg-white rounded-lg shadow-md overflow-hidden cursor-pointer group';
+            card.style.animationDelay = `${index * 30}ms`;
+            
+            // [PERBAIKAN] Menggunakan data-src untuk lazy loading
+            card.innerHTML = `
+                <div class="relative flex-shrink-0">
+                    <img data-src="${recipe.gambar}" alt="${recipe.nama}" class="lazyload w-full h-48 object-cover">
+                </div>
+                <div class="p-4 flex-grow flex flex-col">
+                    <h3 class="font-bold text-lg mb-2 flex-grow">${recipe.nama}</h3>
+                    <div class="flex items-center gap-4 text-xs text-gray-500 mt-auto">
+                        <span>${recipe.waktu}</span>
+                        <span class="font-semibold">${recipe.kesulitan}</span>
+                    </div>
+                </div>`;
+            
+            card.addEventListener('click', () => showRecipeDetail(recipe));
+            dom.recipeGrid.appendChild(card);
+        });
+
+        dom.recipeGrid.style.opacity = '1';
+    }, 200); // Penundaan singkat untuk efek visual
+}
+
+/**
+ * [TAMBAHAN] Memperbarui teks hitungan resep.
+ */
+function updateRecipeCount(displayed, total) {
+    if (displayed < total) {
+        dom.recipeCount.textContent = `Menampilkan ${displayed} dari ${total} resep`;
+    } else {
+        dom.recipeCount.textContent = `Menampilkan semua ${total} resep`;
+    }
+}
+
+/**
+ * [TAMBAHAN] Mengelola visibilitas tombol reset filter.
+ */
+function updateResetButtonVisibility() {
+    const shouldShow = activeTags.size > 0 || dom.searchBar.value.length > 0;
+    dom.resetFiltersBtn.classList.toggle('hidden', !shouldShow);
+}
+
+/**
+ * Populates the filter buttons based on available tags.
+ */
+function populateFilters() {
+    const allTags = new Set();
+    recipes[currentCategory].forEach(recipe => {
+        recipe.tags.forEach(tag => allTags.add(tag));
+    });
+
+    dom.filterTagsContainer.innerHTML = '';
+    const allButton = document.createElement('button');
+    allButton.className = 'filter-tag-btn active font-semibold py-1 px-4 rounded-full border border-gray-300';
+    allButton.textContent = 'Semua';
+    allButton.dataset.tag = 'Semua';
+    dom.filterTagsContainer.appendChild(allButton);
+
+    [...allTags].sort().forEach(tag => { // Diurutkan agar rapi
+        const button = document.createElement('button');
+        button.className = 'filter-tag-btn font-semibold py-1 px-4 rounded-full border border-gray-300';
+        button.textContent = tag;
+        button.dataset.tag = tag;
+        dom.filterTagsContainer.appendChild(button);
+    });
+}
+
+/**
+ * Filters and renders recipes.
+ */
+function applyFiltersAndSearch() {
+    const searchTerm = dom.searchBar.value.toLowerCase().trim();
+    let filteredRecipes = recipes[currentCategory];
+
+    if (activeTags.size > 0) {
+        filteredRecipes = filteredRecipes.filter(r => 
+            Array.from(activeTags).every(tag => r.tags.includes(tag))
+        );
+    }
+    
+    if (searchTerm) {
+        filteredRecipes = filteredRecipes.filter(r => 
+            r.nama.toLowerCase().includes(searchTerm) ||
+            r.deskripsi.toLowerCase().includes(searchTerm) ||
+            r.bahan.some(b => b.toLowerCase().includes(searchTerm))
+        );
+    }
+    
+    updateResetButtonVisibility();
+    renderRecipes(filteredRecipes);
+}
+
+/**
+ * Transitions between pages.
+ */
+function switchPage(toPage) {
+    dom.loader.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => {
+        if (toPage === 'list') {
+            dom.mainPage.classList.add('hidden');
+            dom.recipeListPage.classList.remove('hidden');
+        } else {
+            dom.recipeListPage.classList.add('hidden');
+            dom.mainPage.classList.remove('hidden');
+        }
+        dom.loader.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+        window.scrollTo(0, 0);
+    }, 500);
+}
+
+/**
+ * Displays recipes by category.
+ */
+function displayRecipesByCategory(category) {
+    currentCategory = category;
+    dom.recipeListTitle.textContent = category === 'makanan' ? 'Aneka Makanan' : 'Aneka Minuman';
+    resetAllFilters();
+    populateFilters();
+    applyFiltersAndSearch();
+    switchPage('list');
+}
+
+/**
+ * Shows recipe detail modal.
+ */
+function showRecipeDetail(recipe) {
+    dom.modalImage.src = recipe.gambar; // Langsung load gambar kualitas tinggi untuk modal
+    dom.modalTitle.textContent = recipe.nama;
+    dom.modalTime.textContent = recipe.waktu;
+    dom.modalDifficulty.textContent = recipe.kesulitan;
+    dom.modalDescription.textContent = recipe.deskripsi;
+    dom.modalIngredients.innerHTML = recipe.bahan.map(item => `<li>${item}</li>`).join('');
+    dom.modalInstructions.innerHTML = recipe.instruksi.map((item, i) => `<li class="flex gap-3"><div class="flex-shrink-0 w-6 h-6 bg-amber-800 text-white text-sm rounded-full flex items-center justify-center font-bold">${i + 1}</div><p>${item}</p></li>`).join('');
+    
+    dom.modal.classList.remove('hidden');
+    dom.modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Closes recipe detail modal.
+ */
+function closeModal() {
+    dom.modalContent.style.transform = 'scale(0.95)';
+    dom.modalContent.style.opacity = '0';
+    setTimeout(() => {
+        dom.modal.classList.add('hidden');
+        dom.modal.classList.remove('flex');
+        document.body.style.overflow = 'auto';
+        dom.modalContent.style.transform = '';
+        dom.modalContent.style.opacity = '';
+    }, 300);
+}
+
+/**
+ * [TAMBAHAN] Fungsi untuk mereset semua filter.
+ */
+function resetAllFilters() {
+    dom.searchBar.value = '';
+    activeTags.clear();
+    dom.filterTagsContainer.querySelectorAll('.filter-tag-btn').forEach(btn => btn.classList.remove('active'));
+    dom.filterTagsContainer.querySelector('[data-tag="Semua"]')?.classList.add('active');
+    applyFiltersAndSearch();
+}
+
+// ===================================================================================
+// --- INITIALIZATION & EVENT LISTENERS ---
+// ===================================================================================
+document.addEventListener('DOMContentLoaded', () => {
+    
+    dom.catMakanan.addEventListener('click', () => displayRecipesByCategory('makanan'));
+    dom.catMinuman.addEventListener('click', () => displayRecipesByCategory('minuman'));
+    dom.backButton.addEventListener('click', () => switchPage('main'));
+    dom.searchBar.addEventListener('input', applyFiltersAndSearch);
+    dom.resetFiltersBtn.addEventListener('click', resetAllFilters);
+
+    dom.filterTagsContainer.addEventListener('click', (e) => {
+        const target = e.target.closest('.filter-tag-btn');
+        if (target) {
+            const tag = target.dataset.tag;
+
+            if (tag === 'Semua') {
+                activeTags.clear();
+                dom.filterTagsContainer.querySelectorAll('.filter-tag-btn').forEach(btn => btn.classList.remove('active'));
+                target.classList.add('active');
+            } else {
+                dom.filterTagsContainer.querySelector('[data-tag="Semua"]').classList.remove('active');
+                target.classList.toggle('active');
+                if (activeTags.has(tag)) {
+                    activeTags.delete(tag);
+                } else {
+                    activeTags.add(tag);
+                }
+                if (activeTags.size === 0) {
+                    dom.filterTagsContainer.querySelector('[data-tag="Semua"]').classList.add('active');
+                }
+            }
+            applyFiltersAndSearch();
+        }
+    });
+
+    dom.randomRecipeBtn.addEventListener('click', () => {
+        const allRecipes = [...recipes.makanan, ...recipes.minuman];
+        const randomRecipe = allRecipes[Math.floor(Math.random() * allRecipes.length)];
+        showRecipeDetail(randomRecipe);
+    });
+    
+    dom.closeModalButton.addEventListener('click', closeModal);
+    dom.modal.addEventListener('click', e => { if (e.target === dom.modal) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === "Escape" && !dom.modal.classList.contains('hidden')) closeModal(); });
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            dom.scrollToTopBtn.classList.remove('opacity-0', 'translate-y-4');
+        } else {
+            dom.scrollToTopBtn.classList.add('opacity-0', 'translate-y-4');
+        }
+    });
+    dom.scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+});
+</script>
+</body>
+</html>
